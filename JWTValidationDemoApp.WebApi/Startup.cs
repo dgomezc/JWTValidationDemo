@@ -24,11 +24,7 @@ namespace JWTValidationDemoApp.WebApi
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            // Configure authorization with default JWT Bearer authentication builder
-            services.ProtectWebApiWithDefaultJWTAuthentication(Configuration);
-
-            // Configure authorization with manual JWT Token validation
-            // services.ProtectWebApiWithManualJWTValidation(Configuration);
+            services.ProtectWebApiWithJwtBearer(Configuration);
 
             services.AddSingleton<IItemRepository, ItemRepository>();
             services.AddSwaggerGen(c =>

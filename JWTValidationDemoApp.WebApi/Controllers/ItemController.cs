@@ -13,7 +13,7 @@ namespace JWTValidationDemoApp.WebApi.Controllers
     // TODO WTS: Update or replace this controller as necessary for your needs.
     // Learn more at https://dotnet.microsoft.com/apps/aspnet/apis
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Policy = "SampleClaimPolicy")]
     [ApiController]
     public class ItemController : ControllerBase
     {

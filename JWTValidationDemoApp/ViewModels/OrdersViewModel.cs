@@ -14,7 +14,7 @@ namespace JWTValidationDemoApp.ViewModels
     public class OrdersViewModel : Observable
     {
         private IdentityService IdentityService => Singleton<IdentityService>.Instance;
-        private HttpDataService _httpDataService = new HttpDataService("http://localhost:53849/api");
+        private HttpDataService _httpDataService = new HttpDataService("http://localhost:9858/api");
         private SampleOrder _selected;
 
         public SampleOrder Selected
@@ -57,7 +57,7 @@ namespace JWTValidationDemoApp.ViewModels
 
         private async Task<IEnumerable<SampleOrder>> GetDataAsync(MasterDetailsViewState viewState)
         {
-            var accessToken = await IdentityService.GetTokenSilentToMyClientAsync();
+            var accessToken = await IdentityService.GetAccessTokenForWebApiAsync();
             var data = await _httpDataService.GetAsync<IEnumerable<SampleOrder>>("orders", accessToken);
 
             foreach (var item in data)

@@ -19,9 +19,8 @@ namespace JWTValidationDemoApp.Core.Services
         //// https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki
         //// https://docs.microsoft.com/azure/active-directory/develop/v2-overview
 
-
-        public static string[] _myAppscopes = {$"{ConfigurationManager.AppSettings["ResourceId"]}/{ConfigurationManager.AppSettings["Scope"]}" };
-        private readonly string[] _scopes = new string[] { "user.read" };
+        private readonly string[] _graphScopes = new string[] { "user.read" };
+        private readonly string[] _webApiAppscopes = { $"{ConfigurationManager.AppSettings["ResourceId"]}/{ConfigurationManager.AppSettings["WebApiScope"]}" };
 
         private bool _integratedAuthAvailable;
         private IPublicClientApplication _client;
@@ -72,9 +71,9 @@ namespace JWTValidationDemoApp.Core.Services
             try
             {
                 var accounts = await _client.GetAccountsAsync();
-                _authenticationResult = await _client.AcquireTokenInteractive(_scopes)
+                _authenticationResult = await _client.AcquireTokenInteractive(_graphScopes)
+                                                     .WithExtraScopesToConsent(_webApiAppscopes)
                                                      .WithAccount(accounts.FirstOrDefault())
-                                                     .WithExtraScopesToConsent(_myAppscopes)
                                                      .ExecuteAsync();
 
                 LoggedIn?.Invoke(this, EventArgs.Empty);
@@ -129,9 +128,15 @@ namespace JWTValidationDemoApp.Core.Services
             }
         }
 
-        public async Task<string> GetAccessTokenAsync()
+        public async Task<string> GetAccessTokenForGraphAsync() => await GetAccessTokenAsync(_graphScopes);
+
+        public async Task<string> GetAccessTokenForWebApiAsync() => await GetAccessTokenAsync(_webApiAppscopes);
+
+        public async Task<bool> AcquireTokenSilentAsync() => await AcquireTokenSilentAsync(_graphScopes);
+
+        private async Task<string> GetAccessTokenAsync(string[] scopes)
         {
-            var acquireTokenSuccess = await AcquireTokenSilentAsync();
+            var acquireTokenSuccess = await AcquireTokenSilentAsync(scopes);
             if (acquireTokenSuccess)
             {
                 return _authenticationResult.AccessToken;
@@ -142,7 +147,7 @@ namespace JWTValidationDemoApp.Core.Services
                 {
                     // Interactive authentication is required
                     var accounts = await _client.GetAccountsAsync();
-                    _authenticationResult = await _client.AcquireTokenInteractive(_scopes)
+                    _authenticationResult = await _client.AcquireTokenInteractive(scopes)
                                                          .WithAccount(accounts.FirstOrDefault())
                                                          .ExecuteAsync();
                     return _authenticationResult.AccessToken;
@@ -157,7 +162,7 @@ namespace JWTValidationDemoApp.Core.Services
             }
         }
 
-        public async Task<bool> AcquireTokenSilentAsync()
+        private async Task<bool> AcquireTokenSilentAsync(string[] scopes)
         {
             if (!NetworkInterface.GetIsNetworkAvailable())
             {
@@ -167,7 +172,7 @@ namespace JWTValidationDemoApp.Core.Services
             try
             {
                 var accounts = await _client.GetAccountsAsync();
-                _authenticationResult = await _client.AcquireTokenSilent(_scopes, accounts.FirstOrDefault())
+                _authenticationResult = await _client.AcquireTokenSilent(scopes, accounts.FirstOrDefault())
                                                      .ExecuteAsync();
                 return true;
             }
@@ -177,7 +182,7 @@ namespace JWTValidationDemoApp.Core.Services
                 {
                     try
                     {
-                        _authenticationResult = await _client.AcquireTokenByIntegratedWindowsAuth(_scopes)
+                        _authenticationResult = await _client.AcquireTokenByIntegratedWindowsAuth(scopes)
                                                              .ExecuteAsync();
                         return true;
                     }
@@ -202,21 +207,5 @@ namespace JWTValidationDemoApp.Core.Services
             }
         }
 
-
-        public async Task<string> GetTokenSilentToMyClientAsync()
-        {
-            try
-            {
-                var accounts = await _client.GetAccountsAsync();
-                var result = await _client.AcquireTokenSilent(_myAppscopes, accounts.FirstOrDefault())
-                                                     .ExecuteAsync();
-
-                return result.AccessToken;
-            }
-            catch (Exception)
-            {
-                return string.Empty;
-            }
-        }
     }
 }

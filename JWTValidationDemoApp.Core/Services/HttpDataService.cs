@@ -36,11 +36,7 @@ namespace JWTValidationDemoApp.Core.Services
             // Feel free to remove it or extend this request logic as appropraite for your app.
             if (forceRefresh || !responseCache.ContainsKey(uri))
             {
-                if(accessToken != null)
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-                }
-
+                AddAuthorizationHeader(accessToken);
                 var json = await client.GetStringAsync(uri);
                 result = await Task.Run(() => JsonConvert.DeserializeObject<T>(json));
 
@@ -126,6 +122,18 @@ namespace JWTValidationDemoApp.Core.Services
             var response = await client.DeleteAsync(uri);
 
             return response.IsSuccessStatusCode;
+        }
+
+        // Add this to all public methods 
+        private void AddAuthorizationHeader(string token)
+        {
+            if(string.IsNullOrEmpty(token))
+            {
+                client.DefaultRequestHeaders.Authorization = null;
+                return;
+            }
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
     }
 }

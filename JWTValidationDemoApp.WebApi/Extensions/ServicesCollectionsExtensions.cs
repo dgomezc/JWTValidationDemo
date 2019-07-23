@@ -1,20 +1,14 @@
-﻿using JWTValidationDemoApp.WebApi.Extensions;
-using JWTValidationDemoApp.WebApi.Models;
-using Microsoft.AspNetCore.Authentication;
+﻿using JWTValidationDemoApp.WebApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServicesCollectionsExtensions
     {
-        public static IServiceCollection ProtectWebApiWithDefaultJWTAuthentication(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection ProtectWebApiWithJwtBearer(this IServiceCollection services, IConfiguration configuration)
         {
             var settings = new AuthenticationSettings();
             configuration.GetSection("AuthenticationSettings").Bind(settings);
@@ -23,6 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var audience = settings.Audience;
             var authority = $"https://login.windows.net/{tenantID}";
             var issuer = $"https://sts.windows.net/{tenantID}/";
+            var scope = settings.Scope;
 
             services
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -35,34 +30,31 @@ namespace Microsoft.Extensions.DependencyInjection
                     {
                         ValidateIssuer = true,
                         ValidIssuer = issuer,
-
-                        //ValidateAudience = true,
-                        //ValidAudience = audience,  //or
-                        //ValidAudiences = new string[] { tenantID, audience },
-
-                        //ValidateIssuerSigningKey = true,
-                        //IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secrets)),
-
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
                     };
+
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = context =>
+                        {
+                            // TODO:
+                            return Task.CompletedTask;
+                        },
+
+                        OnAuthenticationFailed = context =>
+                        {
+                            // TODO:
+                            return Task.CompletedTask;
+                        }
+                    };
                 });
 
-            return services;
-        }
-
-        public static IServiceCollection ProtectWebApiWithManualJWTValidation(this IServiceCollection services, IConfiguration configuration)
-        {
-            var settings = new AuthenticationSettings();
-            configuration.GetSection("AuthenticationSettings").Bind(settings);
-
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtManualAuthAuth(options => 
-                {
-                    options.Audience = settings.Audience;
-                    options.TenantId = settings.TenantId;
-                });
+            // Add Authorization with claim policy
+            services.AddAuthorization(config =>
+            {
+                config.AddPolicy("SampleClaimPolicy", policy => policy.RequireClaim("http://schemas.microsoft.com/identity/claims/scope", scope));
+            });
 
             return services;
         }

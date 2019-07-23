@@ -7,7 +7,7 @@
         public string TenantId { get; set; }
 
         public string Audience { get; set; }
-
-        public string AADInstance { get; set; }
+        
+        public string Scope { get; set; }
     }
 }
