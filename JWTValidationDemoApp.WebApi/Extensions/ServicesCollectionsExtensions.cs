@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -25,13 +26,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     options.Authority = authority;
                     options.Audience = audience;
-
+                    
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidIssuer = issuer,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
+                        //RoleClaimType = "roles",
                     };
 
                     options.Events = new JwtBearerEvents
@@ -50,10 +52,20 @@ namespace Microsoft.Extensions.DependencyInjection
                     };
                 });
 
+            // Only in net core 2.2 ???
+            //JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+
             // Add Authorization with claim policy
             services.AddAuthorization(config =>
             {
-                config.AddPolicy("SampleClaimPolicy", policy => policy.RequireClaim("http://schemas.microsoft.com/identity/claims/scope", scope));
+                config.AddPolicy("SampleClaimPolicy", policy =>
+                    policy
+                        .RequireAuthenticatedUser()
+                        .RequireClaim("http://schemas.microsoft.com/identity/claims/scope", scope));
+
+
+                //Rol by policy
+                config.AddPolicy("OrderReadersPolicy", policy => policy.RequireRole("OrderReaders"));
             });
 
             return services;

@@ -33,6 +33,8 @@ namespace JWTValidationDemoApp.WebApi.Controllers
 
         [HttpGet]
         [Route("~/api/orders")]
+        [Authorize(Roles = "OrderReaders")]
+        //[Authorize(Policy = "OrderReadersPolicy")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<SampleOrder>> ListOrders()
         {
