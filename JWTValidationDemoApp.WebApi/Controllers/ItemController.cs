@@ -12,8 +12,13 @@ namespace JWTValidationDemoApp.WebApi.Controllers
 {
     // TODO WTS: Update or replace this controller as necessary for your needs.
     // Learn more at https://dotnet.microsoft.com/apps/aspnet/apis
+    // For more info on claims and role-based autorization see 
+    // https://docs.microsoft.com/aspnet/core/security/authorization/claims?view=aspnetcore-2.2
+    // https://docs.microsoft.com/aspnet/core/security/authorization/roles?view=aspnetcore-2.2
+
     [Route("api/[controller]")]
     [Authorize(Policy = "SampleClaimPolicy")]
+    [Authorize(Roles = "OrderReaders")]
     [ApiController]
     public class ItemController : ControllerBase
     {
@@ -33,8 +38,6 @@ namespace JWTValidationDemoApp.WebApi.Controllers
 
         [HttpGet]
         [Route("~/api/orders")]
-        [Authorize(Roles = "OrderReaders")]
-        //[Authorize(Policy = "OrderReadersPolicy")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<SampleOrder>> ListOrders()
         {

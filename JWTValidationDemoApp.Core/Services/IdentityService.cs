@@ -14,22 +14,25 @@ namespace JWTValidationDemoApp.Core.Services
     {
         //// For more information about using Identity, see
         //// https://github.com/Microsoft/WindowsTemplateStudio/blob/master/docs/features/identity.md
-        ////
         //// Read more about Microsoft Identity Client here
         //// https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki
         //// https://docs.microsoft.com/azure/active-directory/develop/v2-overview
-
-        private readonly string[] _graphScopes = new string[] { "user.read" };
-        private readonly string[] _webApiAppscopes = { $"{ConfigurationManager.AppSettings["ResourceId"]}/{ConfigurationManager.AppSettings["WebApiScope"]}" };
-
-        private bool _integratedAuthAvailable;
-        private IPublicClientApplication _client;
-        private AuthenticationResult _authenticationResult;
 
         // TODO WTS: The IdentityClientId in App.config is provided to test the project in development environments.
         // Please, follow these steps to create a new one with Azure Active Directory and replace it before going to production.
         // https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app
         private string _clientId = ConfigurationManager.AppSettings["IdentityClientId"];
+
+        // TODO WTS: Follow these steps to configure access to the Web Api on your client application registration, 
+        // update the App.config's ResourceId and WebApiScope.
+        // https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-access-web-apis#add-permissions-to-access-web-apis
+        private readonly string[] _webApiScopes = { $"{ConfigurationManager.AppSettings["ResourceId"]}/{ConfigurationManager.AppSettings["WebApiScope"]}" };
+
+        private readonly string[] _graphScopes = new string[] { "user.read" };
+
+        private bool _integratedAuthAvailable;
+        private IPublicClientApplication _client;
+        private AuthenticationResult _authenticationResult;
 
         public event EventHandler LoggedIn;
 
@@ -72,7 +75,7 @@ namespace JWTValidationDemoApp.Core.Services
             {
                 var accounts = await _client.GetAccountsAsync();
                 _authenticationResult = await _client.AcquireTokenInteractive(_graphScopes)
-                                                     .WithExtraScopesToConsent(_webApiAppscopes)
+                                                     .WithExtraScopesToConsent(_webApiScopes)
                                                      .WithAccount(accounts.FirstOrDefault())
                                                      .ExecuteAsync();
 
@@ -130,7 +133,7 @@ namespace JWTValidationDemoApp.Core.Services
 
         public async Task<string> GetAccessTokenForGraphAsync() => await GetAccessTokenAsync(_graphScopes);
 
-        public async Task<string> GetAccessTokenForWebApiAsync() => await GetAccessTokenAsync(_webApiAppscopes);
+        public async Task<string> GetAccessTokenForWebApiAsync() => await GetAccessTokenAsync(_webApiScopes);
 
         public async Task<bool> AcquireTokenSilentAsync() => await AcquireTokenSilentAsync(_graphScopes);
 

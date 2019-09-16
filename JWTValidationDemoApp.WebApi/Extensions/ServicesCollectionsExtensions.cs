@@ -3,21 +3,40 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.Threading.Tasks;
-using System.IdentityModel.Tokens.Jwt;
+using System.Collections.Generic;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    // Read more about Microsoft Identity Platform at https://docs.microsoft.com/azure/active-directory/develop/v2-overview
+    // You can find detailed info on protecting Web API's on https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-overview
     public static class ServicesCollectionsExtensions
     {
         public static IServiceCollection ProtectWebApiWithJwtBearer(this IServiceCollection services, IConfiguration configuration)
         {
+            // WTS TODO: Follow these steps to register your Web API and expose scopes and roles, 
+            // afterwards populate the appsettings.json with ClientId, Tenant, Audience and Scope
+            // https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app
+            // https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-expose-web-apis
+            // To assign users to your web api: https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-restrict-your-app-to-a-set-of-users
             var settings = new AuthenticationSettings();
             configuration.GetSection("AuthenticationSettings").Bind(settings);
 
             var tenantID = settings.TenantId;
             var audience = settings.Audience;
             var authority = $"https://login.windows.net/{tenantID}";
-            var issuer = $"https://sts.windows.net/{tenantID}/";
+
+            // You can get a list of issuers for the various Azure AD deployments (global & sovereign) from the following endpoint
+            //https://login.microsoftonline.com/common/discovery/instance?authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize&api-version=1.1;
+
+            var validissuers = new List<string>()
+            {
+                $"https://login.microsoftonline.com/{tenantID}/",
+                $"https://login.microsoftonline.com/{tenantID}/v2.0",
+                $"https://login.windows.net/{tenantID}/",
+                $"https://login.microsoft.com/{tenantID}/",
+                $"https://sts.windows.net/{tenantID}/"
+            };
+
             var scope = settings.Scope;
 
             services
@@ -30,30 +49,21 @@ namespace Microsoft.Extensions.DependencyInjection
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = issuer,
+                        ValidIssuers = validissuers,
                         RequireExpirationTime = true,
                         ValidateLifetime = true,
-                        //RoleClaimType = "roles",
                     };
 
                     options.Events = new JwtBearerEvents
                     {
-                        OnTokenValidated = context =>
-                        {
-                            // TODO:
-                            return Task.CompletedTask;
-                        },
-
                         OnAuthenticationFailed = context =>
                         {
-                            // TODO:
+                            // TODO WTS: This event is invoked if there where errors during token validation, 
+                            // please handle as appropriate to your scenario.
                             return Task.CompletedTask;
                         }
                     };
                 });
-
-            // Only in net core 2.2 ???
-            //JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
 
             // Add Authorization with claim policy
             services.AddAuthorization(config =>
@@ -62,10 +72,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     policy
                         .RequireAuthenticatedUser()
                         .RequireClaim("http://schemas.microsoft.com/identity/claims/scope", scope));
-
-
-                //Rol by policy
-                config.AddPolicy("OrderReadersPolicy", policy => policy.RequireRole("OrderReaders"));
             });
 
             return services;
