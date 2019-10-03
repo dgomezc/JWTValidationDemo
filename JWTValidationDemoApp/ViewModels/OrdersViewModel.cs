@@ -14,7 +14,7 @@ namespace JWTValidationDemoApp.ViewModels
     public class OrdersViewModel : Observable
     {
         private IdentityService IdentityService => Singleton<IdentityService>.Instance;
-        private HttpDataService _httpDataService = new HttpDataService("http://localhost:9858/api");
+        private HttpDataService _httpDataService = new HttpDataService("http://localhost:55129/api");
         private SampleOrder _selected;
 
         public SampleOrder Selected

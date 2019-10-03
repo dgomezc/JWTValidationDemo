@@ -43,8 +43,8 @@ namespace JWTValidationDemoApp.Services
                 // take into account that the splash screen is shown while this code runs.
                 await InitializeAsync();
                 UserDataService.Initialize();
-                var tenantId = ConfigurationManager.AppSettings["TenantId"];
-                IdentityService.InitializeWithAadSingleOrg(tenantId);
+                //var tenantId = ConfigurationManager.AppSettings["TenantId"];
+                IdentityService.InitializeWithAadMultipleOrgs();
                 await IdentityService.AcquireTokenSilentAsync();
 
                 // Do not repeat app initialization when the Window already has content,
