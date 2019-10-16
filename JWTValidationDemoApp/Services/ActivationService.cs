@@ -44,7 +44,7 @@ namespace JWTValidationDemoApp.Services
                 await InitializeAsync();
                 UserDataService.Initialize();
                 //var tenantId = ConfigurationManager.AppSettings["TenantId"];
-                IdentityService.InitializeWithAadMultipleOrgs();
+                IdentityService.InitializeWithAadAndPersonalMsAccounts();
                 await IdentityService.AcquireTokenSilentAsync();
 
                 // Do not repeat app initialization when the Window already has content,

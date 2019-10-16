@@ -33,6 +33,10 @@ namespace Microsoft.Extensions.DependencyInjection
                new OpenIdConnectConfigurationRetriever());
             var openIdConfig = configurationManager.GetConfigurationAsync(CancellationToken.None).Result;
 
+
+            // For multitenant scenarios and issuer validation please see
+            //https://docs.microsoft.com/azure/active-directory/develop/howto-convert-app-to-be-multi-tenant#update-your-code-to-handle-multiple-issuer-values
+
             // You can get a list of issuers for the various Azure AD deployments (global & sovereign) from the following endpoint
             //https://login.microsoftonline.com/common/discovery/instance?authorization_endpoint=https://login.microsoftonline.com/common/oauth2/v2.0/authorize&api-version=1.1;
 
